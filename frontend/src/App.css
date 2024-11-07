@@ -1,0 +1,75 @@
+/* src/styles/App.css */
+
+.app-container {
+  font-family: Arial, sans-serif;
+  background-color: #1e1e1e;
+  color: #ffffff;
+  padding: 20px;
+}
+
+.model-selector {
+  margin-bottom: 20px;
+}
+
+.chat-section {
+  display: flex;
+  justify-content: space-between;
+}
+
+.chat-window, .chat-history {
+  width: 48%;
+  background-color: #2e2e2e;
+  padding: 15px;
+  border-radius: 5px;
+}
+
+.chat-window .messages {
+  height: 300px;
+  overflow-y: scroll;
+  margin-bottom: 10px;
+  background-color: #1e1e1e;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.message {
+  margin-bottom: 10px;
+}
+
+.message.user p {
+  text-align: right;
+}
+
+.message.bot p {
+  text-align: left;
+}
+
+.input-area {
+  display: flex;
+}
+
+.input-area input {
+  flex-grow: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+}
+
+.input-area button {
+  padding: 10px;
+  margin-left: 10px;
+  background-color: #0078d7;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.input-area button:disabled {
+  background-color: #555;
+  cursor: not-allowed;
+}
+
+.chat-history .history-item {
+  margin-bottom: 15px;
+}

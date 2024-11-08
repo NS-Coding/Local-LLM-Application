@@ -1,0 +1,98 @@
+/* General Styles */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #343541;
+    color: #FFFFFF;
+}
+
+nav {
+    background-color: #202123;
+    padding: 10px;
+}
+
+nav a {
+    color: #FFFFFF;
+    text-decoration: none;
+    font-size: 18px;
+}
+
+.container {
+    padding: 20px;
+}
+
+/* Header */
+h1, h2 {
+    color: #FFFFFF;
+}
+
+/* Forms */
+form {
+    margin-top: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+select, input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #40414F;
+    border: none;
+    color: #FFFFFF;
+}
+
+button {
+    padding: 10px 20px;
+    background-color: #10A37F;
+    border: none;
+    color: #FFFFFF;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #13C296;
+}
+
+/* Chat Box */
+#chat-box {
+    background-color: #40414F;
+    padding: 20px;
+    height: 400px;
+    overflow-y: auto;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.message {
+    margin-bottom: 15px;
+}
+
+.message.user {
+    text-align: right;
+}
+
+.message.bot {
+    text-align: left;
+}
+
+/* Links */
+a {
+    color: #10A37F;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    .container {
+        padding: 10px;
+    }
+}

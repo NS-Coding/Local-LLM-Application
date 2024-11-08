@@ -1,19 +1,10 @@
-# app.py
-
 from flask import Flask
-from flask_cors import CORS
+from routes import init_routes
 from database import init_db
-from routes import routes
 
 app = Flask(__name__)
-CORS(app)
-
-# Initialize the database
 init_db()
-
-# Register the blueprint for routes
-app.register_blueprint(routes)
+init_routes(app)
 
 if __name__ == '__main__':
-    app.run(debug=True, host='127.0.0.1', port=3001)
-
+    app.run(debug=True)

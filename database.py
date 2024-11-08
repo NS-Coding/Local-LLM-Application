@@ -1,49 +1,73 @@
-# database.py
-
 import sqlite3
 from datetime import datetime
 
+DB_NAME = 'database.db'
+
+def get_db_connection():
+    conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = sqlite3.Row
+    return conn
+
 def init_db():
-    conn = sqlite3.connect('chat.db')
-    c = conn.cursor()
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS chats (
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS conversations (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            model TEXT NOT NULL,
-            user_message TEXT NOT NULL,
-            bot_response TEXT NOT NULL,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+            model_name TEXT,
+            created_at TIMESTAMP
+        )
+    ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            conversation_id INTEGER,
+            sender TEXT,
+            message TEXT,
+            timestamp TIMESTAMP,
+            FOREIGN KEY(conversation_id) REFERENCES conversations(id)
         )
     ''')
     conn.commit()
     conn.close()
 
-def save_chat(model_key, user_message, bot_response):
-    conn = sqlite3.connect('chat.db')
-    c = conn.cursor()
-    c.execute('INSERT INTO chats (model, user_message, bot_response) VALUES (?, ?, ?)',
-              (model_key, user_message, bot_response))
+def get_conversations():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM conversations ORDER BY created_at DESC')
+    conversations = cursor.fetchall()
+    conn.close()
+    return conversations
+
+def create_new_conversation(model_name):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        'INSERT INTO conversations (model_name, created_at) VALUES (?, ?)',
+        (model_name, datetime.now()),
+    )
+    conn.commit()
+    conversation_id = cursor.lastrowid
+    conn.close()
+    return conversation_id
+
+def save_message(conversation_id, sender, message):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        'INSERT INTO messages (conversation_id, sender, message, timestamp) VALUES (?, ?, ?, ?)',
+        (conversation_id, sender, message, datetime.now()),
+    )
     conn.commit()
     conn.close()
 
-def get_chat_history(model_key=None, limit=20, offset=0):
-    conn = sqlite3.connect('chat.db')
-    c = conn.cursor()
-    if model_key:
-        c.execute('SELECT * FROM chats WHERE model = ? ORDER BY timestamp DESC LIMIT ? OFFSET ?', 
-                  (model_key, limit, offset))
-    else:
-        c.execute('SELECT * FROM chats ORDER BY timestamp DESC LIMIT ? OFFSET ?', 
-                  (limit, offset))
-    chats = c.fetchall()
+def get_messages(conversation_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        'SELECT sender, message FROM messages WHERE conversation_id = ? ORDER BY timestamp ASC',
+        (conversation_id,),
+    )
+    messages = cursor.fetchall()
     conn.close()
-
-    chat_history = [{
-        'id': chat[0],
-        'model': chat[1],
-        'user_message': chat[2],
-        'bot_response': chat[3],
-        'timestamp': chat[4]
-    } for chat in chats]
-
-    return chat_history
+    return messages

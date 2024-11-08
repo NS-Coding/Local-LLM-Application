@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Chat with {{ model_name }}{% endblock %}
+
+{% block content %}
+<h1>Chat with {{ model_name }}</h1>
+
+<div id="chat-box">
+    {% for msg in messages %}
+        <div class="message {{ msg['sender']|lower }}">
+            <strong>{{ msg['sender'] }}:</strong> {{ msg['message'] }}
+        </div>
+    {% endfor %}
+</div>
+
+<form action="{{ url_for('chat', model_name=model_name, conversation_id=conversation_id) }}" method="post">
+    <input type="text" name="message" placeholder="Type your message here..." required autocomplete="off">
+    <button type="submit">Send</button>
+</form>
+{% endblock %}

@@ -1,58 +1,44 @@
-# routes.py
+from flask import render_template, request, redirect, url_for
+from models import get_available_models, load_model, generate_response
+from database import (
+    get_conversations,
+    create_new_conversation,
+    save_message,
+    get_messages,
+)
 
-from flask import Blueprint, request, jsonify
-from models import get_model, MODEL_NAMES
-from database import save_chat, get_chat_history
-import torch
+def init_routes(app):
+    @app.route('/')
+    def index():
+        models = get_available_models()
+        conversations = get_conversations()
+        return render_template('index.html', models=models, conversations=conversations)
 
-routes = Blueprint('routes', __name__)
+    @app.route('/new_chat', methods=['POST'])
+    def new_chat():
+        model_name = request.form['model']
+        conversation_id = create_new_conversation(model_name)
+        return redirect(url_for('chat', model_name=model_name, conversation_id=conversation_id))
 
-@routes.route('/select_model', methods=['POST'])
-def select_model():
-    data = request.get_json()
-    model_key = data.get('model_key')
-    if model_key in MODEL_NAMES:
-        # Load the model (this will download if not already)
-        get_model(model_key)
-        return jsonify({'status': f'Model {model_key} loaded'}), 200
-    else:
-        return jsonify({'error': 'Model not found'}), 404
+    @app.route('/chat/<model_name>/<int:conversation_id>', methods=['GET', 'POST'])
+    def chat(model_name, conversation_id):
+        model_tuple = load_model(model_name)
+        messages = get_messages(conversation_id)
 
-@routes.route('/chat', methods=['POST'])
-def chat():
-    data = request.get_json()
-    model_key = data.get('model_key')
-    user_message = data.get('message')
+        if request.method == 'POST':
+            user_message = request.form['message']
+            save_message(conversation_id, 'User', user_message)
 
-    if model_key not in MODEL_NAMES:
-        return jsonify({'error': 'Model not found'}), 404
+            # Get updated messages after saving the user's message
+            conversation_history = get_messages(conversation_id)
+            bot_response = generate_response(model_tuple, conversation_history)
+            save_message(conversation_id, 'Bot', bot_response)
 
-    try:
-        model, tokenizer = get_model(model_key)
-        inputs = tokenizer.encode(user_message + tokenizer.eos_token, return_tensors='pt')
-        if torch.cuda.is_available():
-            inputs = inputs.to('cuda')
-        outputs = model.generate(inputs, max_length=500, pad_token_id=tokenizer.eos_token_id)
-        response_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
+            return redirect(url_for('chat', model_name=model_name, conversation_id=conversation_id))
 
-        # Save to database
-        save_chat(model_key, user_message, response_text)
-
-        return jsonify({'response': response_text}), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@routes.route('/history', methods=['GET'])
-def get_history():
-    model_key = request.args.get('model_key')
-    limit = int(request.args.get('limit', 20))  # Default to 20 records
-    offset = int(request.args.get('offset', 0))
-
-    chat_history = get_chat_history(model_key, limit, offset)
-
-    return jsonify({'history': chat_history}), 200
-
-# Error handler for the routes
-@routes.errorhandler(Exception)
-def handle_exception(e):
-    return jsonify({'error': str(e)}), 500
+        return render_template(
+            'chat.html',
+            model_name=model_name,
+            conversation_id=conversation_id,
+            messages=messages,
+        )
